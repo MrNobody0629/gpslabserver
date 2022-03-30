@@ -16,6 +16,12 @@ const fetch = async (query)=>{
     console.log(data)
     return data;
 }
+const fetchLike = async (query)=>{
+    const con = await MongoClient.connect(dburl);
+    const data = await con.db("mydb").collection("users").find(query);
+    console.log(data)
+    return data;
+}
 
 const remove = async (query)=>{
     const con = await MongoClient.connect(dburl);
@@ -31,4 +37,4 @@ const update = async (query,newData)=>{
     return data;
 }
 
-module.exports = {insert,fetch,remove,update};
+module.exports = {insert,fetch,remove,update,fetchLike};

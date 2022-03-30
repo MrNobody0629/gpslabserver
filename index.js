@@ -14,7 +14,14 @@ const port = process.env.PORT || 3001;
 // app.set("view engine","ejs")
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
-app.use(cors());
+
+var options = {
+    "origin": "*",
+    "methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
+    "preflightContinue": false,
+    "optionsSuccessStatus": 204
+  }
+app.use(cors(options));
 
 
 var storage = multer.diskStorage({
@@ -87,6 +94,16 @@ app.post('/validateToken',async (req,res)=>{
         res.send({status:'-1',result:'Something went wrong'})
     }
 })
+app.post('/getUserDataByEmail',async (req,res)=>{
+    try {
+        const {email} = req.body;
+        const findRes = await db.fetch({email:email});
+        console.log(findRes)
+        res.send({status:'1',result:findRes[0]})
+    } catch (err) {
+        res.send({status:'-1',result:'Something went wrong'})
+    }
+})
 
 app.post('/updateUserData',async (req,res)=>{
     const {name,email,contact,gender,password} = req.body;
@@ -99,6 +116,31 @@ app.post('/updateUserData',async (req,res)=>{
         res.send({status:'-1',result:updateRes})
     }
 })
+
+app.post('/getAllUserData',async (req,res)=>{
+    const {name,email,contact} = req.body;
+    const jsonData = {name:{'$regex': name},email:{'$regex':email},contact:{'$regex': contact}};
+    console.log(jsonData)
+    const findRes = await db.fetch(jsonData);
+    if( findRes.length> 0 )
+    {
+        res.send({status:'1',result:findRes})
+    } 
+    else
+    res.send({status:'-1',result:'no user found'})
+})
+app.post('/deleteRecord',async (req,res)=>{
+    const {email} = req.body;
+    console.log(email)
+    const delRes = await db.remove({email:email});
+    if(delRes.deletedCount > 0)
+    {
+        res.send({status:'1',result:delRes})
+    } 
+    else
+    res.send({status:'-1',result:'no user found'})
+})
+
 
 app.listen(port,(req,res)=>{
     console.log('http://localhost:'+port)
